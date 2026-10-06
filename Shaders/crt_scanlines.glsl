@@ -25,6 +25,14 @@ StepAmount = 8.0
 DefaultValue = 480.0
 
 [OptionRangeFloat]
+GUIName = Horizontal resolution (640 = GameCube/Wii native)
+OptionName = PIXELS_X
+MinValue = 320.0
+MaxValue = 1920.0
+StepAmount = 8.0
+DefaultValue = 640.0
+
+[OptionRangeFloat]
 GUIName = Scanline hardness (more negative = thinner, darker gaps)
 OptionName = HARD_SCAN
 MinValue = -20.0
@@ -101,12 +109,13 @@ float3 ToGamma(float3 c)
 	return pow(max(c, float3(0.0, 0.0, 0.0)), float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
 }
 
-// Virtual CRT resolution: LINES tall, width keeping the source's pixel aspect.
+// Virtual CRT resolution: PIXELS_X wide, LINES tall. The width is its own setting rather than
+// derived from the frame's aspect: the console's frame is 640 wide whatever its height (480,
+// 528, 574 on PAL), so tying width to LINES resampled 640 columns onto ~535-581 and turned
+// one-pixel detail into moire.
 float2 VirtualRes()
 {
-	float2 src = GetResolution();
-	float lines = GetOption(LINES);
-	return float2(floor(src.x * lines / src.y), lines);
+	return float2(GetOption(PIXELS_X), GetOption(LINES));
 }
 
 // Nearest virtual pixel at `pos`, offset by whole virtual pixels; black outside the image.

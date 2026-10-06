@@ -29,6 +29,7 @@ shaders use.
 | Option | Default | What it does |
 |---|---|---|
 | Virtual scanlines | 480 | Line count of the simulated tube. 240 gives chunky low-res lines. Independent of internal resolution, so 6x IR still shows visible lines. |
+| Horizontal resolution | 640 | Pixels per line of the simulated tube. 640 matches GameCube/Wii output, so one-pixel detail (text, HUDs) stays sharp and free of moiré. Raise it for widescreen-hack frames. |
 | Scanline hardness | -8 | More negative gives thinner lines with darker gaps. |
 | Horizontal sharpness | -3 | More negative gives sharper pixels along each line. |
 | Curvature X / Y | 0.02 / 0.03 | Barrel warp. 0 for a flat screen. |
@@ -48,7 +49,7 @@ python3 tools/testpattern.py pattern.png   # or use your own screenshot
 env -u DISPLAY python3 tools/glrender.py Shaders/crt_scanlines.glsl pattern.png out.png
 ```
 
-The tool stubs Dolphin's shader API (`GetResolution` reports a 6x-IR frame, `GetCoordinates` runs
+The tool stubs Dolphin's shader API (`GetResolution` reports the input at 6x internal resolution, `GetCoordinates` runs
 0..1) to match Dolphin's semantics. Dolphin itself remains the reference.
 
 ## Credits and license

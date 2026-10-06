@@ -15,10 +15,12 @@ ctx = OSMesaCreateContextAttribs(attrs, None)
 buf = arrays.GLubyteArray.zeros((H, W, 4))
 assert OSMesaMakeCurrent(ctx, buf, GL.GL_UNSIGNED_BYTE, W, H)
 src = open(sys.argv[1]).read()
+img = np.array(Image.open(sys.argv[2]).convert("RGBA"))  # top row first; v_tex0.y=0 is top
+IR = 6       # GetResolution reports the input as if rendered at 6x internal resolution
 opts = dict(re.findall(r"OptionName\s*=\s*(\w+)\s*\n[^\[]*?DefaultValue\s*=\s*([-\d.]+)", src))
 pre = "#version 330 core\n#define float2 vec2\n#define float3 vec3\n#define float4 vec4\n#define lerp mix\nuniform sampler2D samp1;\nin vec2 v_tex0;\nout vec4 ocol0;\n"
 pre += "".join(f"uniform float {o};\n" for o in opts)
-pre += "#define GetOption(x) (x)\nvec2 GetResolution(){return vec2(3840.0,3168.0);}\nvec2 GetWindowResolution(){return vec2(%d.0,%d.0);}\nvec2 GetCoordinates(){return v_tex0;}\nvec4 SampleLocation(vec2 p){return texture(samp1,p);}\nvoid SetOutput(vec4 c){ocol0=c;}\n" % (W, H)
+pre += "#define GetOption(x) (x)\nvec2 GetResolution(){return vec2(%d.0,%d.0);}\nvec2 GetWindowResolution(){return vec2(%d.0,%d.0);}\nvec2 GetCoordinates(){return v_tex0;}\nvec4 SampleLocation(vec2 p){return texture(samp1,p);}\nvoid SetOutput(vec4 c){ocol0=c;}\n" % (IR * img.shape[1], IR * img.shape[0], W, H)
 vs = "#version 330 core\nout vec2 v_tex0;\nvoid main(){vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); v_tex0=vec2(p.x, 1.0-p.y); gl_Position=vec4(p*2.0-1.0,0.0,1.0);}\n"
 def sh(kind, s):
     o = GL.glCreateShader(kind); GL.glShaderSource(o, s); GL.glCompileShader(o)
@@ -29,7 +31,6 @@ GL.glAttachShader(p, sh(GL.GL_VERTEX_SHADER, vs)); GL.glAttachShader(p, sh(GL.GL
 GL.glLinkProgram(p); assert GL.glGetProgramiv(p, GL.GL_LINK_STATUS), GL.glGetProgramInfoLog(p)
 GL.glUseProgram(p)
 for o, v in opts.items(): GL.glUniform1f(GL.glGetUniformLocation(p, o), float(v))
-img = np.array(Image.open(sys.argv[2]).convert("RGBA"))  # top row first; v_tex0.y=0 is top
 tex = GL.glGenTextures(1); GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, img.shape[1], img.shape[0], 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, img)
 for k in (GL.GL_TEXTURE_MIN_FILTER, GL.GL_TEXTURE_MAG_FILTER): GL.glTexParameteri(GL.GL_TEXTURE_2D, k, GL.GL_LINEAR)
