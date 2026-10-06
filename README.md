@@ -21,7 +21,7 @@ overlays. It also has no phosphor persistence on purpose, because trails read as
 2. In Dolphin: **Graphics → Enhancements → Post-Processing Effect → crt_scanlines**.
 3. **Configure** next to it opens the options below; changes show live.
 
-Written for the post-processing API of Dolphin 2512; it uses only the calls Dolphin's bundled
+Tested in-game on Dolphin 2512 (Linux, Vulkan). It uses only the calls Dolphin's bundled
 shaders use.
 
 ## Options
